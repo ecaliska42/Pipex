@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:45 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/21 18:47:34 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/22 18:45:15 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,12 @@
 #include <sys/wait.h> //wait, waitpid
 #include "libft/libft.h"
 #include "ft_printf/ft_printf.h"
-#include "gnl/get_next_line.h"
-#include "gnl/get_next_line.h"
+
+// typedef struct list
+// {
+//     char *commands;
+//     struct s_list *next;
+// }p_list;
 
 
 #endif

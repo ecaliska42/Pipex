@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/14 20:21:47 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/10/28 17:42:19 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/22 18:48:29 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void	*ft_memcpy(void *dest, const void *src, size_t n);
 //bonus
 typedef struct s_list
 {
-	void			*content;
+	char*			content;
 	struct s_list	*next;
 }t_list;
 
