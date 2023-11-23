@@ -1,3 +1,5 @@
 ##  can you explain me how the dup2 function in C works using some graphs or flowchart
 
 ## ok and how does the pipe function work using the same explanation
+
+## how can i communicate between a function that i split with fork
