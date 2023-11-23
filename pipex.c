@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: enes <enes@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/23 12:11:50 by enes             ###   ########.fr       */
+/*   Updated: 2023/11/23 18:20:03 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "ft_printf/ft_printf.h"
 #include "libft/libft.h"
 #include <fcntl.h>
+#include <stdio.h>
 #include <unistd.h>
 
 void	printlist(t_list **head)
@@ -28,7 +29,7 @@ void	printlist(t_list **head)
 }
 
 
-char	**get_commands(char **envp)
+char	**get_commands(char **envp, char *first)
 {
 	int i = 0;
 	while(ft_strncmp(envp[i], "PATH=", 5) != 0)
@@ -42,29 +43,30 @@ char	**get_commands(char **envp)
 	{
 		paths[j] = ft_strtrim(paths[j], "PATH=");
 		paths[j] = ft_strjoin(paths[j], "/");
-		ft_printf("%s\n", paths[j]);
+		paths[j] = ft_strjoin(paths[j], first);
 		j++;
 	}
-	j = 0;
-	t_list *cmds = NULL;
-	ft_printf("printing nodes\n\n\n");
-	while(paths[j])
-	{
-		ft_lstadd_back(&cmds, ft_lstnew(paths[j]));
-		j++;
-	}
-	printlist(&cmds);
+	// j = 0;
+	// t_list *cmds = NULL;
+	// ft_printf("printing nodes\n\n\n");
+	// while(paths[j])
+	// {
+	// 	ft_lstadd_back(&cmds, ft_lstnew(paths[j]));
+	// 	j++;
+	// }
+	// printlist(&cmds);
 	return paths;
 }
 
-int	execute(char** path, char *const command)
+int	execute(char** path, char* command)
 {
 	int i = 0;
-	while (execve(path[i], command, NULL)==-1)
+	while (execve(path[i], &command, NULL) == -1 && path[i])
 	{
+		printf("%d\n", i);
 		i++;
 	}
-	if (execve(path[i], command, NULL) != -1)
+	if (execve(path[i], &command, NULL) != -1)
 		return 1;
 	return -1;
 }
@@ -74,13 +76,13 @@ void	child(int *filedescriptor)
 	
 }
 
-void	parent(int *filedescriptor,char *file, char *command)
+void	parent(int *filedescriptor)
 {
-	close(filedescriptor[1]);
-	dup2(2, 1);
-	int fd = open(file, O_RDONLY);
-	if (fd == -1)
-		exit(ft_printf("ERROR with FD in Parent\n"));
+	// close(filedescriptor[1]);
+	// dup2(2, 1);
+	// int fd = open(file, O_RDONLY);
+	// if (fd == -1)
+	// 	exit(ft_printf("ERROR with FD in Parent\n"));
 	
 }
 
@@ -93,29 +95,32 @@ int main(int ac, char **av, char **envp)
 	//av[3] child command
 	//av[4] output file (result)
 	(void)ac;
-	char **paths = get_commands(envp);
-	char *const command = av[2];
-	ft_printf("execute is %d\n", execute(paths, command));
-
+	int	fd[2];
+	if (pipe(fd) == -1)
+	{
+		perror("There was an error with your pipe\n");
+		return -1;
+	}
+	char **command = ft_split(av[1], ' ');
+	char **paths = get_commands(envp, command[0]);
+	int i = 0;
+	while(paths[i])
+	{
+		if (access(paths[i], 0) != -1)
+			break;
+		i++;
+	}
+	execve(paths[i], command, envp);
 	
-	// int	fd[2];
-	// if (pipe(fd) == -1)
-	// {
-	// 	perror("There was an error with your pipe\n");
-	// 	return -1;
-	// }
-	// pid_t id = fork();
-	// if (id != 0)
-	// {
-	// 	close (fd[1]);
-	// 	dup2(2, fd[1]);
-	// 	int file = open("input.txt", O_RDONL);
-	// 	wait(NULL);
-	// }
-	// else
-	// {
-	// 	child(fd);
-	// }
+	pid_t id = fork();
+	if (id != 0) //parent
+	{
+		
+	}
+	else //child
+	{
+		
+	}
 }
 
 
