@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
+/*   By: enes <enes@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/22 20:08:20 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/23 11:56:05 by enes             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,16 @@ char	**get_commands(char **envp)
 	return paths;
 }
 
-void	execute(char* path, char* command)
+int	execute(char** path, char *const command)
 {
-	
+	int i = 0;
+	while (execve(path[i], command, NULL)==-1)
+	{
+		i++;
+	}
+	if (execve(path[i], command, NULL) != -1)
+		return 1;
+	return -1;
 }
 
 void	child(int *filedescriptor)
@@ -81,24 +88,33 @@ int main(int ac, char **av, char **envp)
 {
 	// if (ac < 4)
 	// 	return -1;
-	char **commands = get_commands(envp);
+	//av[1] file in
+	//av[2] command for file
+	//av[3] child command
+	//av[4] output file (result)
+	char **paths = get_commands(envp);
+	char *const command = av[2];
+	ft_printf("execute is %d\n", execute(paths, command, NULL));
+
 	
-	int	fd[2];
-	if (pipe(fd) == -1)
-	{
-		perror("There was an error with your pipe\n");
-		return -1;
-	}
-	pid_t id = fork();
-	if (id != 0)
-	{
-		parent(fd, av[1], av[2]);
-		wait(NULL);
-	}
-	else
-	{
-		child(fd);
-	}
+	// int	fd[2];
+	// if (pipe(fd) == -1)
+	// {
+	// 	perror("There was an error with your pipe\n");
+	// 	return -1;
+	// }
+	// pid_t id = fork();
+	// if (id != 0)
+	// {
+	// 	close (fd[1]);
+	// 	dup2(2, fd[1]);
+	// 	int file = open("input.txt", O_RDONL);
+	// 	wait(NULL);
+	// }
+	// else
+	// {
+	// 	child(fd);
+	// }
 }
 
 
