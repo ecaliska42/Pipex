@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/23 18:20:03 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/23 20:24:23 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "libft/libft.h"
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 void	printlist(t_list **head)
@@ -101,8 +102,10 @@ int main(int ac, char **av, char **envp)
 		perror("There was an error with your pipe\n");
 		return -1;
 	}
-	char **command = ft_split(av[1], ' ');
+	char **command = ft_split(av[2], ' ');
+	char **command2 = ft_split(av[3], ' ');
 	char **paths = get_commands(envp, command[0]);
+	char **paths2 = get_commands(envp, command2[0]);
 	int i = 0;
 	while(paths[i])
 	{
@@ -110,19 +113,39 @@ int main(int ac, char **av, char **envp)
 			break;
 		i++;
 	}
-	execve(paths[i], command, envp);
-	
+	//execve(paths[i], command, envp);
+	int j = 0;
+	while(paths2[j])
+	{
+		if (access(paths2[j], 0) != -1)
+			break;
+		j++;
+	}
 	pid_t id = fork();
 	if (id != 0) //parent
 	{
-		
+		close(fd[1]);
+		int file = open("input.txt", O_RDONLY);
+		dup2(file, STDIN_FILENO);
+		close(fd[0]);
+		//close(file);
+		execve(paths[i], command, envp);
+		//printf("paths = %s and command = %s%s\n", paths[i], command[0], command[1]);
+		wait(NULL);
 	}
 	else //child
 	{
-		
+		close(fd[0]);
+		int file = open("output.txt", O_WRONLY);
+		dup2(file, STDOUT_FILENO);
+		close(fd[1]);
+		//close(file);
+		//printf("paths2 = %s and command2 = %s %s\n", paths2[j], command2[0], command2[1]);
+		execve(paths2[j], command2, envp);
+		//write(STDOUT_FILENO, "HELLO\n", 6);
 	}
 }
-
+//./pipex input.txt "grep aa" "wc -l" output.txt 
 
 /*
 open		is used to open a file for reading, writing, or both. It can also create the file if it does not exist
