@@ -6,7 +6,7 @@
 /*   By: enes <enes@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/23 11:56:05 by enes             ###   ########.fr       */
+/*   Updated: 2023/11/23 12:11:50 by enes             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,9 +92,10 @@ int main(int ac, char **av, char **envp)
 	//av[2] command for file
 	//av[3] child command
 	//av[4] output file (result)
+	(void)ac;
 	char **paths = get_commands(envp);
 	char *const command = av[2];
-	ft_printf("execute is %d\n", execute(paths, command, NULL));
+	ft_printf("execute is %d\n", execute(paths, command));
 
 	
 	// int	fd[2];
