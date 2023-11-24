@@ -6,11 +6,13 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/24 16:37:21 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/24 17:02:30 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include "gnl/get_next_line_bonus.h"
+#include <unistd.h>
 
 
 char	**get_commands(char **envp, char *first)
@@ -80,22 +82,22 @@ int main(int ac, char **av, char **envp)
 	pid_t id = fork();
 	if (id != 0) //parent
 	{
-		close(fd[1]);
-		wait(NULL);
-		int file = open(av[4], O_WRONLY | O_CREAT | O_TRUNC);
-		dup2(file, fd[0]);
-		//close(file);
 		close(fd[0]);
+		int file = open(av[4], O_WRONLY | O_CREAT | O_TRUNC);
+		dup2(file, STDOUT_FILENO);
+		close(file);
+		close(fd[1]);
 		execve(paths2[j], command2, envp);
+		wait(NULL);
 		//printf("paths = %s and command = %s%s\n", paths[i], command[0], command[1]);
 	}
 	else //child
 	{
-		close(fd[0]);
-		int file = open(av[1], O_RDONLY);
-		dup2(file, fd[1]);
-		//close(file);
 		close(fd[1]);
+		char *line = get_next_line(fd[0]);
+		//int file = open(av[1], O_RDONLY);
+		dup2(fd[0], STDIN_FILENO);
+		close(fd[0]);
 		execve(paths[i], command, envp);
 		//printf("paths2 = %s and command2 = %s %s\n", paths2[j], command2[0], command2[1]);
 		//write(STDOUT_FILENO, "HELLO\n", 6);
@@ -103,7 +105,7 @@ int main(int ac, char **av, char **envp)
 	close(fd[0]);
 	close(fd[1]);
 }
-//./pipex input "grep aa" "wc -l" output 
+//./pipex input "grep aa" "wc -l" output
 
 /*
 open		is used to open a file for reading, writing, or both. It can also create the file if it does not exist

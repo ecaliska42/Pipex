@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:45 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/24 16:34:23 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/24 17:01:48 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include <sys/wait.h> //wait, waitpid
 #include "libft/libft.h"
 #include "ft_printf/ft_printf.h"
+#include "gnl/get_next_line_bonus.h"
+#include "gnl/get_next_line.h"
 
 // typedef struct list
 // {
