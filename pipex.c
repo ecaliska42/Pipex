@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/23 20:24:23 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/24 15:49:38 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,18 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void	printlist(t_list **head)
-{
-	t_list *temp;
-	temp = *head;
-	while(temp)
-	{
-		ft_printf("node = %s\n", temp->content);
-		temp = temp->next;
-	}
-}
-
+// int	execute(char** path, char* command)
+// {
+// 	int i = 0;
+// 	while (execve(path[i], &command, NULL) == -1 && path[i])
+// 	{
+// 		printf("%d\n", i);
+// 		i++;
+// 	}
+// 	if (execve(path[i], &command, NULL) != -1)
+// 		return 1;
+// 	return -1;
+// }
 
 char	**get_commands(char **envp, char *first)
 {
@@ -37,7 +38,6 @@ char	**get_commands(char **envp, char *first)
 	{
 		i++;
 	}
-	//ft_printf("enviroment = %s\n", envp[i]);
 	char **paths = ft_split(envp[i], ':');
 	int j = 0;
 	while(paths[j])
@@ -47,45 +47,9 @@ char	**get_commands(char **envp, char *first)
 		paths[j] = ft_strjoin(paths[j], first);
 		j++;
 	}
-	// j = 0;
-	// t_list *cmds = NULL;
-	// ft_printf("printing nodes\n\n\n");
-	// while(paths[j])
-	// {
-	// 	ft_lstadd_back(&cmds, ft_lstnew(paths[j]));
-	// 	j++;
-	// }
-	// printlist(&cmds);
 	return paths;
 }
 
-int	execute(char** path, char* command)
-{
-	int i = 0;
-	while (execve(path[i], &command, NULL) == -1 && path[i])
-	{
-		printf("%d\n", i);
-		i++;
-	}
-	if (execve(path[i], &command, NULL) != -1)
-		return 1;
-	return -1;
-}
-
-void	child(int *filedescriptor)
-{
-	
-}
-
-void	parent(int *filedescriptor)
-{
-	// close(filedescriptor[1]);
-	// dup2(2, 1);
-	// int fd = open(file, O_RDONLY);
-	// if (fd == -1)
-	// 	exit(ft_printf("ERROR with FD in Parent\n"));
-	
-}
 
 int main(int ac, char **av, char **envp)
 {
@@ -113,6 +77,11 @@ int main(int ac, char **av, char **envp)
 			break;
 		i++;
 	}
+	if (access(paths[i], 0) == -1)
+	{
+		perror("command of av[2] not found\n");
+		return -1;
+	}
 	//execve(paths[i], command, envp);
 	int j = 0;
 	while(paths2[j])
@@ -121,31 +90,36 @@ int main(int ac, char **av, char **envp)
 			break;
 		j++;
 	}
+	if (access(paths2[j], 0) == -1)
+	{
+		perror("command of av[3] not found\n");
+		return -1;
+	}
 	pid_t id = fork();
 	if (id != 0) //parent
 	{
 		close(fd[1]);
-		int file = open("input.txt", O_RDONLY);
-		dup2(file, STDIN_FILENO);
-		close(fd[0]);
+		int file = open(av[1], O_RDONLY);
+		dup2(file, fd[0]);
 		//close(file);
+		close(fd[0]);
+		wait(NULL);
 		execve(paths[i], command, envp);
 		//printf("paths = %s and command = %s%s\n", paths[i], command[0], command[1]);
-		wait(NULL);
 	}
 	else //child
 	{
 		close(fd[0]);
-		int file = open("output.txt", O_WRONLY);
-		dup2(file, STDOUT_FILENO);
-		close(fd[1]);
+		int file = open(av[4], O_WRONLY | O_CREAT | O_TRUNC);
+		dup2(file, fd[1]);
 		//close(file);
-		//printf("paths2 = %s and command2 = %s %s\n", paths2[j], command2[0], command2[1]);
+		//close(fd[1]);
 		execve(paths2[j], command2, envp);
+		//printf("paths2 = %s and command2 = %s %s\n", paths2[j], command2[0], command2[1]);
 		//write(STDOUT_FILENO, "HELLO\n", 6);
 	}
 }
-//./pipex input.txt "grep aa" "wc -l" output.txt 
+//./pipex input "grep aa" "wc -l" output 
 
 /*
 open		is used to open a file for reading, writing, or both. It can also create the file if it does not exist
