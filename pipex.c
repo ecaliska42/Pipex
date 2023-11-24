@@ -6,30 +6,12 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/24 15:49:38 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/24 16:37:21 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include "ft_printf/ft_printf.h"
-#include "libft/libft.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
-// int	execute(char** path, char* command)
-// {
-// 	int i = 0;
-// 	while (execve(path[i], &command, NULL) == -1 && path[i])
-// 	{
-// 		printf("%d\n", i);
-// 		i++;
-// 	}
-// 	if (execve(path[i], &command, NULL) != -1)
-// 		return 1;
-// 	return -1;
-// }
 
 char	**get_commands(char **envp, char *first)
 {
@@ -99,25 +81,27 @@ int main(int ac, char **av, char **envp)
 	if (id != 0) //parent
 	{
 		close(fd[1]);
-		int file = open(av[1], O_RDONLY);
+		wait(NULL);
+		int file = open(av[4], O_WRONLY | O_CREAT | O_TRUNC);
 		dup2(file, fd[0]);
 		//close(file);
 		close(fd[0]);
-		wait(NULL);
-		execve(paths[i], command, envp);
+		execve(paths2[j], command2, envp);
 		//printf("paths = %s and command = %s%s\n", paths[i], command[0], command[1]);
 	}
 	else //child
 	{
 		close(fd[0]);
-		int file = open(av[4], O_WRONLY | O_CREAT | O_TRUNC);
+		int file = open(av[1], O_RDONLY);
 		dup2(file, fd[1]);
 		//close(file);
-		//close(fd[1]);
-		execve(paths2[j], command2, envp);
+		close(fd[1]);
+		execve(paths[i], command, envp);
 		//printf("paths2 = %s and command2 = %s %s\n", paths2[j], command2[0], command2[1]);
 		//write(STDOUT_FILENO, "HELLO\n", 6);
 	}
+	close(fd[0]);
+	close(fd[1]);
 }
 //./pipex input "grep aa" "wc -l" output 
 

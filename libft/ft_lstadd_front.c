@@ -6,14 +6,14 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/28 17:44:57 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/10/29 17:02:33 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/24 16:35:56 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-void	ft_lstadd_front(t_list **lst, t_list *new)
+void	ft_lstadd_front(t_list **lst, t_list *neu)
 {
-	new -> next = *lst;
-	*lst = new;
+	neu -> next = *lst;
+	*lst = neu;
 }
