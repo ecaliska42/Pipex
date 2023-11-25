@@ -3,3 +3,7 @@
 ## ok and how does the pipe function work using the same explanation
 
 ## how can i communicate between a function that i split with fork
+
+## can you explain to me how the dup2 function works using the pipe and fork function like i am five
+
+## can you explain to me how i can create a function that opens an input file and prints the result of my commands in my output file and simulates pipes with fork, pipe, dup2, read, write and open

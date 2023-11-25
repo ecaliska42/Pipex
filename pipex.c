@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/25 20:39:23 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/25 21:26:13 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ int main(int ac, char **av, char **envp)
 			dup2(fd[1], STDOUT_FILENO);
 			close(fd[1]);
 			//close(tempfile);
-			execve(all_commands[i][j], all_paths[i], envp);
+			//execve(all_commands[i][j], all_paths[i], envp);
 		}
 		else //parent
 		{
