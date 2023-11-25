@@ -6,14 +6,18 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/24 17:02:30 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/25 20:39:23 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include "gnl/get_next_line_bonus.h"
+#include "gnl/get_next_line.h"
+#include "libft/libft.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
 #include <unistd.h>
-
 
 char	**get_commands(char **envp, char *first)
 {
@@ -34,76 +38,132 @@ char	**get_commands(char **envp, char *first)
 	return paths;
 }
 
+char	***get_comms(int command_count, char **commands, char **envp)
+{
+	int i = 2;
+	int j = 0;
+	char ***allcoms = malloc(sizeof(char **) * command_count);
+	while(i < command_count - 1)
+	{
+		char **command = ft_split(commands[i], ' ');
+		allcoms[j] = get_commands(envp, command[0]);
+		j++;
+		i++;
+	}
+	return allcoms;
+}
+
+char ***get_paths(int command_count, char **commands)
+{
+	int i = 2;
+	int j = 0;
+	char ***allpaths = malloc(sizeof(char **) * command_count);
+	while (i < command_count - 1)
+	{
+		allpaths[j] = ft_split(commands[i], ' ');
+		j++;
+		i++;
+	}
+	return allpaths;
+}
+
+void	testprintcommands(char ***all_commands)
+{
+	int i = 0;
+	int x = 0;
+	while (all_commands[i])
+	{
+		x = 0;
+		printf("commands in all_commands[%d] are:\n", i);
+		while (all_commands[i][x])
+		{
+			printf("\t%s\n", all_commands[i][x]);
+			x++;
+		}
+		i++;
+	}
+	exit(1);	
+}
+
+void	printpaths(char ***allpaths)
+{
+	int i = 0;
+	int j = 0;
+	while (allpaths[i])
+	{
+		j = 0;
+		printf("\tfor path %s\n", *allpaths[i]);
+		while(allpaths[i][j])
+		{
+			printf("\t\t%s\n", allpaths[i][j]);
+			j++;
+		}
+		i++;
+	}
+}
 
 int main(int ac, char **av, char **envp)
 {
-	// if (ac < 4)
-	// 	return -1;
-	//av[1] file in
-	//av[2] command for file
-	//av[3] child command
-	//av[4] output file (result)
-	(void)ac;
 	int	fd[2];
-	if (pipe(fd) == -1)
-	{
-		perror("There was an error with your pipe\n");
-		return -1;
-	}
-	char **command = ft_split(av[2], ' ');
-	char **command2 = ft_split(av[3], ' ');
-	char **paths = get_commands(envp, command[0]);
-	char **paths2 = get_commands(envp, command2[0]);
+	char ***all_commands = get_comms(ac, av, envp);
+	char ***all_paths = get_paths(ac, av);
+	//testprintcommands(all_commands);
+	int infile = open(av[1], O_RDONLY);
+	int outfile = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int tempfile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int i = 0;
-	while(paths[i])
-	{
-		if (access(paths[i], 0) != -1)
-			break;
-		i++;
-	}
-	if (access(paths[i], 0) == -1)
-	{
-		perror("command of av[2] not found\n");
-		return -1;
-	}
-	//execve(paths[i], command, envp);
 	int j = 0;
-	while(paths2[j])
+	int count = 2;
+	int x;
+	char *temp;
+	while (all_commands[i])
 	{
-		if (access(paths2[j], 0) != -1)
-			break;
-		j++;
+		j = 0;
+		while(all_commands[i][j])
+		{
+			if (access(all_commands[i][j], 0) != -1)
+				break;
+			j++;
+		}
+		printf("command is %s\n", all_commands[i][j]);
+		pipe(fd);
+		pid_t id = fork();
+		if (id == 0)//child
+		{
+			close(fd[0]);
+			printf("paths are :\n");
+			printpaths(all_paths);
+			// dup2(fd[1], tempfile);
+			// dup2(tempfile, STDOUT_FILENO);
+			dup2(fd[1], STDOUT_FILENO);
+			close(fd[1]);
+			//close(tempfile);
+			execve(all_commands[i][j], all_paths[i], envp);
+		}
+		else //parent
+		{
+			close(fd[1]);
+			wait(NULL);
+			//dup2(fd[0], STDIN_FILENO);
+			temp = get_next_line(fd[0]);
+			//dup2(fd[0], tempfile);
+			//dup2(tempfile, STDIN_FILENO);
+			close(fd[0]);
+			printf("temp is %s\n", temp);
+			//close(tempfile);
+		}
+		close(infile);
+		close(outfile);
+		i++;
+		count++;
 	}
-	if (access(paths2[j], 0) == -1)
-	{
-		perror("command of av[3] not found\n");
-		return -1;
-	}
-	pid_t id = fork();
-	if (id != 0) //parent
-	{
-		close(fd[0]);
-		int file = open(av[4], O_WRONLY | O_CREAT | O_TRUNC);
-		dup2(file, STDOUT_FILENO);
-		close(file);
-		close(fd[1]);
-		execve(paths2[j], command2, envp);
-		wait(NULL);
-		//printf("paths = %s and command = %s%s\n", paths[i], command[0], command[1]);
-	}
-	else //child
-	{
-		close(fd[1]);
-		char *line = get_next_line(fd[0]);
-		//int file = open(av[1], O_RDONLY);
-		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);
-		execve(paths[i], command, envp);
-		//printf("paths2 = %s and command2 = %s %s\n", paths2[j], command2[0], command2[1]);
-		//write(STDOUT_FILENO, "HELLO\n", 6);
-	}
-	close(fd[0]);
-	close(fd[1]);
+	// x = 0;
+	// char *gnl = get_next_line(infile);
+	// while(gnl[x++])
+	// 	write(outfile, gnl, 1);
+	// close(infile);
+	// close(outfile);
+	return 0;
 }
 //./pipex input "grep aa" "wc -l" output
 

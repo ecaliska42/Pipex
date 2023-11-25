@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/30 19:30:36 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/10/08 16:53:24 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/25 13:29:38 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #  define BUFFER_SIZE 100
 # endif
 
-char	*ft_strjoin(char *s1, char *s2);
+char	*ft_strjoin(char const *s1, char const *s2);
 char	*get_next_line(int fd);
 char	*ft_strdup(const char *s);
 char	*new_str(char *str);
