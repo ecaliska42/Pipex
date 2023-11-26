@@ -6,7 +6,7 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:45 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/25 21:15:56 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/26 17:53:24 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,7 @@
 #include "libft/libft.h"
 #include "ft_printf/ft_printf.h"
 #include "gnl/get_next_line_bonus.h"
-//#include "gnl/get_next_line.h"
-#define READ_END 0
-#define WRITE_END 1
+#include "gnl/get_next_line.h"
 
 typedef struct p_list
 {

@@ -6,19 +6,11 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/26 16:39:13 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/26 17:53:39 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include "gnl/get_next_line.h"
-#include "gnl/get_next_line_bonus.h"
-#include "libft/libft.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 char	**get_commands(char **envp, char *first)
 {
@@ -102,6 +94,22 @@ void	printpaths(char ***allpaths, int i)
 	}
 }
 
+void	fill_first_temp(int infile, int tempfile)
+{
+	int x = 0;
+	char *file = malloc(2);
+	char *temp = malloc(sizeof(char) + 1);
+	int reed;
+	temp[0] = '\0';
+	dup2(infile, STDIN_FILENO);
+	while ((reed = read(infile, file, 1)) > 0) {
+		file[reed] = '\0';
+		temp = ft_strjoin(temp, file);
+	}
+	while(temp[x])
+		write(tempfile, &temp[x++], 1);
+}
+
 int main(int ac, char **av, char **envp)
 {
 	int	fd[2];
@@ -113,12 +121,14 @@ int main(int ac, char **av, char **envp)
 	int tempfile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int i = 0;
 	int j = 0;
-	int x;
-	char *temp;
-	dup2(infile, STDIN_FILENO);
+
+	fill_first_temp(infile, tempfile); //fills the temp.txt with what is written in input.txt
 	dup2(outfile, STDOUT_FILENO);
 	while (all_commands[i])
 	{
+		if (i == ac -2)
+			break;
+		dup2(tempfile, STDIN_FILENO);
 		j = 0;
 		while(all_commands[i][j])
 		{
@@ -144,24 +154,15 @@ int main(int ac, char **av, char **envp)
 			close(fd[1]);
 			wait(NULL);
 			dup2(fd[0], STDIN_FILENO);
-			temp = get_next_line(fd[1]);
+			//temp = get_next_line(fd[1]);
 			//dup2(fd[0], STDIN_FILENO);
 			//dup2(tempfile, STDIN_FILENO);
 			//dup2(int fd, int fd2)
 			close(fd[0]);
-			execve(all_commands[i+1][j], all_paths[i+1], NULL);
-			int p = 0;
-			while (temp[p])
-			{
-				write(outfile, &temp[p], 1);
-				p++;
-			}
+			//execve(all_commands[i+1][j], all_paths[i+1], NULL);
 			//printf("temp is %s\n", temp);
 			//close(tempfile);
 		}
-		close(infile);
-		close(tempfile);
-		close(outfile);
 		i++;
 	}
 	// x = 0;
