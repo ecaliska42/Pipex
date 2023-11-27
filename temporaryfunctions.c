@@ -192,3 +192,133 @@
 	return 0;
 }
 */
+
+/*
+void	fill_first_temp(int infile, int tempfile)
+{
+	int x = 0;
+	char *file = malloc(2);
+	char *temp = malloc(sizeof(char) + 1);
+	int reed;
+	temp[0] = '\0';
+	dup2(infile, STDIN_FILENO);
+	while ((reed = read(infile, file, 1)) > 0) {
+		file[reed] = '\0';
+		temp = ft_strjoin(temp, file);
+	}
+	while(temp[x])
+		write(tempfile, &temp[x++], 1);
+}
+*/
+
+/*
+void	printpaths(char ***allpaths, int i)
+{
+	int j = 0;
+	while (allpaths[i])
+	{
+		j = 0;
+		printf("\tfor path %s\n", *allpaths[i]);
+		while(allpaths[i][j])
+		{
+			printf("\t\t%s\n", allpaths[i][j]);
+			j++;
+		}
+		i++;
+	}
+}
+*/
+
+/*
+void	testprintcommands(char ***all_commands)
+{
+	int i = 0;
+	int x = 0;
+	while (all_commands[i])
+	{
+		x = 0;
+		printf("commands in all_commands[%d] are:\n", i);
+		while (all_commands[i][x])
+		{
+			printf("\t%s\n", all_commands[i][x]);
+			x++;
+		}
+		i++;
+	}
+	exit(1);	
+}
+*/
+
+/*
+int main(int ac, char **av, char **envp)
+{
+	int	fd[2];
+	char ***all_commands = get_comms(ac, av, envp);
+	char ***all_paths = get_paths(ac, av);
+	//testprintcommands(all_commands);
+	int infile = open(av[1], O_RDONLY);
+	int outfile = open(av[ac-1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int tempfile = open("temp.txt", O_RDWR | O_CREAT | O_TRUNC, 0666);
+	int i = 0;
+	int j = 0;
+	char *temp = malloc(1);
+	temp[0] = '\0';
+
+	fill_first_temp(infile, tempfile); //fills the temp.txt with what is written in input.txt
+	//printf("\n\ni am here\n\n");
+	//printf("outfile is %d\n and ac is %d\n", outfile, ac-1);
+	dup2(outfile, STDOUT_FILENO);
+	close(outfile);
+	while (all_commands[i])
+	{
+		dup2(tempfile, STDIN_FILENO);
+		close(tempfile);
+		if (i == ac -2)
+			break;
+		j = 0;
+		while(all_commands[i][j])
+		{
+			if (access(all_commands[i][j], 0) != -1)
+				break;
+			j++;
+		}
+		//printf("command is %s\n", all_commands[i][j]);
+		pipe(fd);
+		pid_t id = fork();
+		if (id == 0)//child
+		{
+			close(fd[0]);
+			dup2(fd[1], STDOUT_FILENO);
+			close(fd[1]);
+			execve(all_commands[i][j], all_paths[i], NULL);
+			// printf("paths are :\n");
+			// printpaths(all_paths, i);
+		}
+		else //parent
+		{
+			//dup2(tempfile, fd[1]);
+			close(fd[1]);
+			wait(NULL);
+			dup2(fd[0], STDIN_FILENO);
+			fill_first_temp(STDIN_FILENO, tempfile);
+			printf("\n\ni am here\n\n");
+			close(fd[0]);
+			//temp = get_next_line(fd[1]);
+			//dup2(fd[0], STDIN_FILENO);
+			//dup2(tempfile, STDIN_FILENO);
+			//dup2(int fd, int fd2)
+			//execve(all_commands[i+1][j], all_paths[i+1], NULL);
+			//printf("temp is %s\n", temp);
+			//close(tempfile);
+		}
+		i++;
+	}
+	// x = 0;
+	// char *gnl = get_next_line(infile);
+	// while(gnl[x++])
+	// 	write(outfile, gnl, 1);
+	// close(infile);
+	// close(outfile);
+	return 0;
+}
+*/

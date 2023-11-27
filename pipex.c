@@ -6,11 +6,15 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/26 17:53:39 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/27 13:15:27 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 char	**get_commands(char **envp, char *first)
 {
@@ -60,120 +64,58 @@ char ***get_paths(int command_count, char **commands)
 	return allpaths;
 }
 
-void	testprintcommands(char ***all_commands)
-{
-	int i = 0;
-	int x = 0;
-	while (all_commands[i])
-	{
-		x = 0;
-		printf("commands in all_commands[%d] are:\n", i);
-		while (all_commands[i][x])
-		{
-			printf("\t%s\n", all_commands[i][x]);
-			x++;
-		}
-		i++;
-	}
-	exit(1);	
-}
-
-void	printpaths(char ***allpaths, int i)
-{
-	int j = 0;
-	while (allpaths[i])
-	{
-		j = 0;
-		printf("\tfor path %s\n", *allpaths[i]);
-		while(allpaths[i][j])
-		{
-			printf("\t\t%s\n", allpaths[i][j]);
-			j++;
-		}
-		i++;
-	}
-}
-
-void	fill_first_temp(int infile, int tempfile)
-{
-	int x = 0;
-	char *file = malloc(2);
-	char *temp = malloc(sizeof(char) + 1);
-	int reed;
-	temp[0] = '\0';
-	dup2(infile, STDIN_FILENO);
-	while ((reed = read(infile, file, 1)) > 0) {
-		file[reed] = '\0';
-		temp = ft_strjoin(temp, file);
-	}
-	while(temp[x])
-		write(tempfile, &temp[x++], 1);
-}
-
 int main(int ac, char **av, char **envp)
 {
-	int	fd[2];
+	if (ac < 5)
+		return -1;
 	char ***all_commands = get_comms(ac, av, envp);
 	char ***all_paths = get_paths(ac, av);
-	//testprintcommands(all_commands);
 	int infile = open(av[1], O_RDONLY);
 	int outfile = open(av[ac-1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int tempfile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int i = 0;
+	int	fd[2];
 	int j = 0;
+	int x = 0;
 
-	fill_first_temp(infile, tempfile); //fills the temp.txt with what is written in input.txt
+	dup2(infile, STDIN_FILENO);
 	dup2(outfile, STDOUT_FILENO);
-	while (all_commands[i])
+	while(all_commands[0][j])
 	{
-		if (i == ac -2)
+		if (access(all_commands[0][j], 0) != -1)
 			break;
-		dup2(tempfile, STDIN_FILENO);
-		j = 0;
-		while(all_commands[i][j])
-		{
-			if (access(all_commands[i][j], 0) != -1)
-				break;
-			j++;
-		}
-		//printf("command is %s\n", all_commands[i][j]);
-		pipe(fd);
-		pid_t id = fork();
-		if (id == 0)//child
-		{
-			close(fd[0]);
-			dup2(fd[1], STDOUT_FILENO);
-			close(fd[1]);
-			execve(all_commands[i][j], all_paths[i], NULL);
-			// printf("paths are :\n");
-			// printpaths(all_paths, i);
-		}
-		else //parent
-		{
-			//dup2(tempfile, fd[1]);
-			close(fd[1]);
-			wait(NULL);
-			dup2(fd[0], STDIN_FILENO);
-			//temp = get_next_line(fd[1]);
-			//dup2(fd[0], STDIN_FILENO);
-			//dup2(tempfile, STDIN_FILENO);
-			//dup2(int fd, int fd2)
-			close(fd[0]);
-			//execve(all_commands[i+1][j], all_paths[i+1], NULL);
-			//printf("temp is %s\n", temp);
-			//close(tempfile);
-		}
-		i++;
+		j++;
 	}
-	// x = 0;
-	// char *gnl = get_next_line(infile);
-	// while(gnl[x++])
-	// 	write(outfile, gnl, 1);
-	// close(infile);
-	// close(outfile);
+	while(all_commands[1][x])
+	{
+		if (access(all_commands[1][x], 0) != -1)
+			break;
+		x++;
+	}
+	pipe(fd);
+	pid_t id = fork();
+	if (id == -1)
+	{
+		perror("Error");
+		exit(-1);
+	}
+	if (id == 0)//child
+	{
+		close(fd[0]);
+		dup2(fd[1], STDOUT_FILENO);
+		close(fd[1]);
+		execve(all_commands[0][j], all_paths[0], NULL);
+	}
+	else //parent
+	{
+		close(fd[1]);
+		wait(NULL);
+		dup2(fd[0], STDIN_FILENO);
+		execve(all_commands[1][x], all_paths[1], NULL);
+		close(fd[0]);
+	}
+	close(infile);
+	close(outfile);
 	return 0;
 }
-
 
 
 
