@@ -6,11 +6,12 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/27 13:15:27 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/27 20:03:06 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include "libft/libft.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -64,32 +65,91 @@ char ***get_paths(int command_count, char **commands)
 	return allpaths;
 }
 
+void	freeall(char ****head)
+{
+	int a = 0;
+	int b = 0;
+	int c = 0;
+	while(head[a])
+	{
+		while(head[a][b])
+		{
+			while(head[a][b][c])
+			{
+				free(head[a][b][c]);
+				c++;
+			}
+			b++;
+		}
+		a++;
+	}
+}
+
+
 int main(int ac, char **av, char **envp)
 {
 	if (ac < 5)
-		return -1;
+	{
+		write(2, "./pipex file1 cmd1 cmd2 file2", 30);
+		return 1;
+	}
+	int infile = open(av[1], O_RDONLY);
+	if (infile < 0)
+	{
+		perror("Error opening infile");
+	}
+	int outfile = open(av[ac-1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (outfile < 0)
+	{
+		perror("Error opening outfile");
+		// freeall(&all_commands);
+		// freeall(&all_paths);
+		exit(EXIT_FAILURE);
+	}
 	char ***all_commands = get_comms(ac, av, envp);
 	char ***all_paths = get_paths(ac, av);
-	int infile = open(av[1], O_RDONLY);
-	int outfile = open(av[ac-1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int	fd[2];
 	int j = 0;
 	int x = 0;
+	int flag1 = 0;
+	int flag2 = 0;
 
 	dup2(infile, STDIN_FILENO);
 	dup2(outfile, STDOUT_FILENO);
+	close(infile);
+	close(outfile);
 	while(all_commands[0][j])
 	{
 		if (access(all_commands[0][j], 0) != -1)
+		{
+			flag1 = 1;
 			break;
+		}
 		j++;
 	}
+	// if (access(all_commands[0][j], 0) == -1)
+	// {
+	// 	perror("'command not found'");
+	// 	freeall(&all_commands);
+	// 	freeall(&all_paths);
+	// 	//return -1;
+	// }
 	while(all_commands[1][x])
 	{
-		if (access(all_commands[1][x], 0) != -1)
+		if (access(all_commands[1][x], 0) == 0)
+		{
+			flag2 = 1;
 			break;
+		}
 		x++;
 	}
+	// if (access(all_commands[1][x], 0) == -1)
+	// {
+	// 	perror("'command2 not found'");
+	// 	freeall(&all_commands);
+	// 	freeall(&all_paths);
+	// 	return 1;
+	// }
 	pipe(fd);
 	pid_t id = fork();
 	if (id == -1)
@@ -97,23 +157,40 @@ int main(int ac, char **av, char **envp)
 		perror("Error");
 		exit(-1);
 	}
-	if (id == 0)//child
+	if (id == 0 && flag1 == 1)//child
 	{
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
+		// if (execve(all_commands[0][j], all_paths[0], NULL) == -1)
+		// 	write(2, "'command not found'", 20);
 		execve(all_commands[0][j], all_paths[0], NULL);
+		perror("not executing");
+		freeall(&all_commands);
+		freeall(&all_paths);
+		return 1;		
 	}
-	else //parent
+	else if (id > 0 && flag2 == 1) //parent
 	{
 		close(fd[1]);
-		wait(NULL);
+		waitpid(id, NULL, WNOHANG | WUNTRACED);
 		dup2(fd[0], STDIN_FILENO);
-		execve(all_commands[1][x], all_paths[1], NULL);
 		close(fd[0]);
+		// if(execve(all_commands[1][x], all_paths[1], NULL) == -1)
+		// {
+		// 	write(2, "'command not found'", 20);
+		// 	// freeall(&all_commands);
+		// 	// freeall(&all_paths);
+		// 	// return 1;
+		// }
+		execve(all_commands[1][x], all_paths[1], NULL);
+		perror("not executing");
+		freeall(&all_commands);
+		freeall(&all_paths);
+		return 1;
 	}
-	close(infile);
-	close(outfile);
+	freeall(&all_commands);
+	freeall(&all_paths);
 	return 0;
 }
 
