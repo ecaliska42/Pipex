@@ -6,13 +6,15 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/28 16:37:56 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/28 18:00:16 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include "libft/libft.h"
+#include <stdlib.h>
 
-// void	freeall(char **head)
+// void	free_dobble(char **head)
 // {
 	
 // }
@@ -31,7 +33,7 @@ char	**get_commands(char **envp, char *first)// envp av[0]
 	while(paths[j])
 	{
 		paths[j] = ft_strtrim(paths[j], "PATH=");
-		paths[j] = ft_strjoin(paths[j], '/');
+		paths[j] = ft_strjoin(paths[j], "/");
 		paths[j] = ft_strjoin(paths[j], first);
 		j++;
 	}
@@ -40,22 +42,30 @@ char	**get_commands(char **envp, char *first)// envp av[0]
 
 char	***get_comms(int command_count, char **commands, char **envp) //ac av envp
 {
+	//printf("command count = %d\n\n", command_count-1);
 	int i = 2;
 	int j = 0;
 	char ***allcoms = malloc(sizeof(char **) * command_count);
 	while(i < command_count - 1)
 	{
-		char **command = ft_split(commands[i], ' ');
-		if (access(commands[i], 0) != -1)
+		// printf("im here lol \n\n");
+		// printf("command in while loop is %s\n\n", commands[i]);
+		if (access(commands[i], 0) == 0)
 		{
-			allcoms[j][i] = ft_strdup(commands[i]);
+			printf("commands[i] = %s\n\n", commands[i]);
+			// allcoms[j] = malloc(sizeof(char *) * command_count);
+			allcoms[j][0] = ft_strdup(commands[i]);
 			j++;
 			i++;
-			continue;
 		}
-		allcoms[j] = get_commands(envp, command[0]);
-		j++;
-		i++;
+		else
+		{
+			//printf("else condition\n\n");
+			char **command = ft_split(commands[i], ' ');
+			allcoms[j] = get_commands(envp, command[0]);
+			j++;
+			i++;
+		}
 	}
 	return allcoms;
 }
@@ -142,10 +152,10 @@ int main(int ac, char **av, char **envp)
 	int flag1 = 0;
 	int flag2 = 0;
 
-	dup2(infile, STDIN_FILENO);
-	dup2(outfile, STDOUT_FILENO);
-	close(infile);
-	close(outfile);
+	// dup2(infile, STDIN_FILENO);
+	// dup2(outfile, STDOUT_FILENO);
+	// close(infile);
+	// close(outfile);
 	while(all_commands[0][j])
 	{
 		if (access(all_commands[0][j], 0) != -1)
@@ -163,9 +173,9 @@ int main(int ac, char **av, char **envp)
 		// free_all_commands(all_paths);
 		//return -1;
 	}
-	testprintcommands(all_commands);
-	testprintcommands(all_paths);
-	return 0;
+	// testprintcommands(all_commands);
+	// testprintcommands(all_paths);
+	// return 0;
 	while(all_commands[1][x])
 	{
 		if (access(all_commands[1][x], 0) == 0)
