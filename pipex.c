@@ -6,13 +6,19 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/28 18:00:16 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/28 21:10:13 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include "ft_fd_printf/ft_fd_printf.h"
 #include "libft/libft.h"
+#include <ctype.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 // void	free_dobble(char **head)
 // {
@@ -45,18 +51,17 @@ char	***get_comms(int command_count, char **commands, char **envp) //ac av envp
 	//printf("command count = %d\n\n", command_count-1);
 	int i = 2;
 	int j = 0;
-	char ***allcoms = malloc(sizeof(char **) * command_count);
+	char ***allcoms = malloc(sizeof(char ***));// * command_count
 	while(i < command_count - 1)
 	{
 		// printf("im here lol \n\n");
 		// printf("command in while loop is %s\n\n", commands[i]);
 		if (access(commands[i], 0) == 0)
 		{
-			printf("commands[i] = %s\n\n", commands[i]);
-			// allcoms[j] = malloc(sizeof(char *) * command_count);
+			//printf("commands[i] = %s\n\n", commands[i]);
+			allcoms[j] = malloc(sizeof(char **)* 2);
 			allcoms[j][0] = ft_strdup(commands[i]);
 			j++;
-			i++;
 		}
 		else
 		{
@@ -64,8 +69,8 @@ char	***get_comms(int command_count, char **commands, char **envp) //ac av envp
 			char **command = ft_split(commands[i], ' ');
 			allcoms[j] = get_commands(envp, command[0]);
 			j++;
-			i++;
 		}
+		i++;
 	}
 	return allcoms;
 }
@@ -128,21 +133,19 @@ void	testprintcommands(char ***all_commands)
 
 int main(int ac, char **av, char **envp)
 {
-	if (ac < 5)
-	{
-		write(2, "./pipex file1 cmd1 cmd2 file2", 30);
-		return 1;
-	}
+	if (ac != 5)
+		return (write(2, "./pipex file1 cmd1 cmd2 file2", 30));
 	int infile = open(av[1], O_RDONLY);
 	if (infile < 0)
 	{
-		perror("Error opening infile");
+		write(2, "Error opening infile\n", 21);
+		infile = open(av[1], O_RDONLY | O_CREAT | O_TRUNC, 0666);
 	}
 	int outfile = open(av[ac-1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (outfile < 0)
 	{
-		perror("Error opening outfile");
-		exit(EXIT_FAILURE);
+		write(2, "Error opening outfile", 21);
+		return (EXIT_FAILURE);
 	}
 	char ***all_commands = get_comms(ac, av, envp);
 	char ***all_paths = get_paths(ac, av);
@@ -152,10 +155,6 @@ int main(int ac, char **av, char **envp)
 	int flag1 = 0;
 	int flag2 = 0;
 
-	// dup2(infile, STDIN_FILENO);
-	// dup2(outfile, STDOUT_FILENO);
-	// close(infile);
-	// close(outfile);
 	while(all_commands[0][j])
 	{
 		if (access(all_commands[0][j], 0) != -1)
@@ -166,16 +165,8 @@ int main(int ac, char **av, char **envp)
 		j++;
 	}
 	if (access(all_commands[0][j], 0) == -1)
-	{
-		//printf("im here 1");
-		perror("'command not found'");
-		// free_all_commands(all_commands);
-		// free_all_commands(all_paths);
-		//return -1;
-	}
-	// testprintcommands(all_commands);
-	// testprintcommands(all_paths);
-	// return 0;
+		ft_fd_printf(2, "%s not found", av[2]);
+		//perror("'cmd1 not found'");
 	while(all_commands[1][x])
 	{
 		if (access(all_commands[1][x], 0) == 0)
@@ -186,52 +177,65 @@ int main(int ac, char **av, char **envp)
 		x++;
 	}
 	if (access(all_commands[1][x], 0) == -1)
-	{
-		//perror("'command not found'");
-		//write(2, "im here", 7);
-		write(2, "command not found\n", 19);
-		// free_all_commands(all_commands);
-		// free_all_commands(all_paths);
-		//return -1;
-	}
+		ft_fd_printf(2, "%s not found", av[3]);
+		//write(2, "cmd2 not found\n", 15);
+	
+	// // if first
+	// dup2(infile, STDIN_FILENO);
+	// dup2(fd[1], STDOUT_FILENO);
+	// // if second
+	// dup2(fd[0], STDIN_FILENO);
+	// dup2(outfile, STDOUT_FILENO);
+	// close(infile);
+	// close(outfile);
+
 	pipe(fd);
 	pid_t id = fork();
-	if (id == -1)
+	if (id < 0)
 	{
 		perror("Error");
-		exit(-1);
+		free_all_commands(all_commands);
+		free_all_commands(all_paths);
+		exit (-1);
 	}
-	if (id == 0 && flag1 == 1)//child
+	else if (id == 0)//child
 	{
 		close(fd[0]);
+		dup2(infile, STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
-		// if (execve(all_commands[0][j], all_paths[0], NULL) == -1)
-		// 	write(2, "'command not found'", 20);
-		int ret = execve(all_commands[0][j], all_paths[0], NULL);
-		if (ret == -1)
-			perror("not executing");
+		execve(all_commands[0][j], all_paths[0], envp);
 	}
-	else if (id > 0 && flag2 == 1) //parent
+	else//parent
 	{
-		close(fd[1]);
 		waitpid(id, NULL, WNOHANG | WUNTRACED);
-		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);
-		// if(execve(all_commands[1][x], all_paths[1], NULL) == -1)
-		// {
-		// 	write(2, "'command not found'", 20);
-		// 	// freeall(&all_commands);
-		// 	// freeall(&all_paths);
-		// 	// return 1;
-		// }
-		int ret = execve(all_commands[1][x], all_paths[1], NULL);
-		if (ret == -1)
+		pid_t id2 = fork();
+		if (id2 < 0)
 		{
-			perror("execve error");
+			perror("Error");
 			free_all_commands(all_commands);
 			free_all_commands(all_paths);
-			return 1;
+			exit (-1);
+		}
+		else if (id2 == 0) //child2
+		{
+			close(fd[1]);
+			dup2(fd[0], STDIN_FILENO);
+			dup2(outfile, STDOUT_FILENO);
+			close(outfile);
+			close(fd[0]);
+			execve(all_commands[1][x], all_paths[1], envp);
+			free_all_commands(all_commands);
+			free_all_commands(all_paths);
+		}
+		else //parent
+		{
+			close(fd[0]);
+			waitpid(id2, NULL, WNOHANG | WUNTRACED);
+			//dup2(fd[1], STDOUT_FILENO);
+			free_all_commands(all_commands);
+			free_all_commands(all_paths);
+			return 0;
 		}
 	}
 	free_all_commands(all_commands);

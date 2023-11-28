@@ -1,19 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   print.c                                            :+:      :+:    :+:   */
+/*   ft_fd_unsigned_putnbr.c                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/28 18:33:03 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/28 20:45:42 by ecaliska         ###   ########.fr       */
+/*   Created: 2023/09/28 18:24:18 by ecaliska          #+#    #+#             */
+/*   Updated: 2023/11/28 21:05:51 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_printf.h"
+#include "ft_fd_printf.h"
 
-int	print(unsigned char c)
+int	ft_fd_unsigned_putnbr(unsigned int nb, int fd)
 {
-	write(1, &c, 1);
-	return (1);
+	int	i;
+
+	i = 0;
+	if (nb > 9)
+	{
+		i += ft_fd_unsigned_putnbr(nb / 10, fd);
+		i += ft_fd_unsigned_putnbr(nb % 10, fd);
+	}
+	else if (nb < 10)
+		i += fd_print(nb + '0', fd);
+	return (i);
 }

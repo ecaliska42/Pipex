@@ -1,19 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   print.c                                            :+:      :+:    :+:   */
+/*   fd_len.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/28 18:33:03 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/28 20:45:42 by ecaliska         ###   ########.fr       */
+/*   Created: 2023/09/28 18:35:16 by ecaliska          #+#    #+#             */
+/*   Updated: 2023/11/28 21:04:12 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_printf.h"
+#include "ft_fd_printf.h"
 
-int	print(unsigned char c)
+int	fd_len(unsigned long long nb)
 {
-	write(1, &c, 1);
-	return (1);
+	int	i;
+
+	i = 0;
+	while (nb)
+	{
+		nb /= 16;
+		i++;
+	}
+	return (i);
 }
