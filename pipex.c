@@ -6,12 +6,11 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/28 21:10:13 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/28 21:24:05 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include "ft_fd_printf/ft_fd_printf.h"
 #include "libft/libft.h"
 #include <ctype.h>
 #include <fcntl.h>
@@ -94,13 +93,10 @@ void	free_all_commands(char ***head)
 {
 	int a = 0;
 	int b = 0;
-	//int c = 0;
-	//printf("\n\nfreeingfunction = %s\n\n", head[a][b]);
+	int c = 0;
 	while(head[a])
 	{
 		b = 0;
-		//printf("\n\n [a] head = %s\n\n", *head[a]);
-		//printf("\n\nfreeingfunction of [%d] = %s\n\n",b, head[a][b]);
 		while(head[a][b])
 		{
 			free(head[a][b]);
@@ -145,6 +141,7 @@ int main(int ac, char **av, char **envp)
 	if (outfile < 0)
 	{
 		write(2, "Error opening outfile", 21);
+		close(infile);
 		return (EXIT_FAILURE);
 	}
 	char ***all_commands = get_comms(ac, av, envp);
@@ -165,8 +162,7 @@ int main(int ac, char **av, char **envp)
 		j++;
 	}
 	if (access(all_commands[0][j], 0) == -1)
-		ft_fd_printf(2, "%s not found", av[2]);
-		//perror("'cmd1 not found'");
+		write(2, "cmd1 not found\n", 15);
 	while(all_commands[1][x])
 	{
 		if (access(all_commands[1][x], 0) == 0)
@@ -177,18 +173,7 @@ int main(int ac, char **av, char **envp)
 		x++;
 	}
 	if (access(all_commands[1][x], 0) == -1)
-		ft_fd_printf(2, "%s not found", av[3]);
-		//write(2, "cmd2 not found\n", 15);
-	
-	// // if first
-	// dup2(infile, STDIN_FILENO);
-	// dup2(fd[1], STDOUT_FILENO);
-	// // if second
-	// dup2(fd[0], STDIN_FILENO);
-	// dup2(outfile, STDOUT_FILENO);
-	// close(infile);
-	// close(outfile);
-
+		write(2, "cmd2 not found\n", 15);
 	pipe(fd);
 	pid_t id = fork();
 	if (id < 0)
@@ -233,9 +218,9 @@ int main(int ac, char **av, char **envp)
 			close(fd[0]);
 			waitpid(id2, NULL, WNOHANG | WUNTRACED);
 			//dup2(fd[1], STDOUT_FILENO);
-			free_all_commands(all_commands);
-			free_all_commands(all_paths);
-			return 0;
+			// free_all_commands(all_commands);
+			// free_all_commands(all_paths);
+			// return 0;
 		}
 	}
 	free_all_commands(all_commands);
