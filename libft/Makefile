@@ -6,7 +6,7 @@
 #    By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/20 18:04:17 by codespace         #+#    #+#              #
-#    Updated: 2023/11/25 17:04:40 by ecaliska         ###   ########.fr        #
+#    Updated: 2023/11/28 16:34:50 by ecaliska         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,8 +25,7 @@ SRC=	ft_atoi.c ft_bzero.c ft_calloc.c ft_isalnum.c \
 		ft_tolower.c ft_toupper.c \
 		ft_lstnew.c ft_lstadd_front.c ft_lstsize.c ft_lstlast.c \
 		ft_lstadd_back.c ft_lstdelone.c ft_lstclear.c \
-		ft_lstiter.c ft_lstmap.c
-		#ft_strjoin.c
+		ft_lstiter.c ft_lstmap.c ft_strjoin.c \
 		
 
 OBJ=	$(SRC:.c=.o)

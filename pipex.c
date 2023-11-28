@@ -6,37 +6,39 @@
 /*   By: ecaliska <ecaliska@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:27:19 by ecaliska          #+#    #+#             */
-/*   Updated: 2023/11/27 20:03:06 by ecaliska         ###   ########.fr       */
+/*   Updated: 2023/11/28 16:37:56 by ecaliska         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include "libft/libft.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
-char	**get_commands(char **envp, char *first)
+// void	freeall(char **head)
+// {
+	
+// }
+
+char	**get_commands(char **envp, char *first)// envp av[0]
 {
 	int i = 0;
 	while(ft_strncmp(envp[i], "PATH=", 5) != 0)
 	{
 		i++;
 	}
+	// if (access(first, 0) != -1)
+	// 	return (*first);
 	char **paths = ft_split(envp[i], ':');
 	int j = 0;
 	while(paths[j])
 	{
 		paths[j] = ft_strtrim(paths[j], "PATH=");
-		paths[j] = ft_strjoin(paths[j], "/");
+		paths[j] = ft_strjoin(paths[j], '/');
 		paths[j] = ft_strjoin(paths[j], first);
 		j++;
 	}
 	return paths;
 }
 
-char	***get_comms(int command_count, char **commands, char **envp)
+char	***get_comms(int command_count, char **commands, char **envp) //ac av envp
 {
 	int i = 2;
 	int j = 0;
@@ -44,12 +46,20 @@ char	***get_comms(int command_count, char **commands, char **envp)
 	while(i < command_count - 1)
 	{
 		char **command = ft_split(commands[i], ' ');
+		if (access(commands[i], 0) != -1)
+		{
+			allcoms[j][i] = ft_strdup(commands[i]);
+			j++;
+			i++;
+			continue;
+		}
 		allcoms[j] = get_commands(envp, command[0]);
 		j++;
 		i++;
 	}
 	return allcoms;
 }
+
 
 char ***get_paths(int command_count, char **commands)
 {
@@ -65,26 +75,46 @@ char ***get_paths(int command_count, char **commands)
 	return allpaths;
 }
 
-void	freeall(char ****head)
+void	free_all_commands(char ***head)
 {
 	int a = 0;
 	int b = 0;
-	int c = 0;
+	//int c = 0;
+	//printf("\n\nfreeingfunction = %s\n\n", head[a][b]);
 	while(head[a])
 	{
+		b = 0;
+		//printf("\n\n [a] head = %s\n\n", *head[a]);
+		//printf("\n\nfreeingfunction of [%d] = %s\n\n",b, head[a][b]);
 		while(head[a][b])
 		{
-			while(head[a][b][c])
-			{
-				free(head[a][b][c]);
-				c++;
-			}
+			free(head[a][b]);
 			b++;
 		}
+		free(head[a]);
 		a++;
 	}
+	free(head);
 }
 
+void	testprintcommands(char ***all_commands)
+{
+	int i = 0;
+	int x = 0;
+	while (all_commands[i])
+	{
+		x = 0;
+		printf("commands in all_commands[%d] are:\n", i);
+		while (all_commands[i][x])
+		{
+			printf("\t%s\n", all_commands[i][x]);
+			x++;
+		}
+		i++;
+	}
+	//exit(1);	
+	printf("\n\n\n");
+}
 
 int main(int ac, char **av, char **envp)
 {
@@ -102,8 +132,6 @@ int main(int ac, char **av, char **envp)
 	if (outfile < 0)
 	{
 		perror("Error opening outfile");
-		// freeall(&all_commands);
-		// freeall(&all_paths);
 		exit(EXIT_FAILURE);
 	}
 	char ***all_commands = get_comms(ac, av, envp);
@@ -127,13 +155,17 @@ int main(int ac, char **av, char **envp)
 		}
 		j++;
 	}
-	// if (access(all_commands[0][j], 0) == -1)
-	// {
-	// 	perror("'command not found'");
-	// 	freeall(&all_commands);
-	// 	freeall(&all_paths);
-	// 	//return -1;
-	// }
+	if (access(all_commands[0][j], 0) == -1)
+	{
+		//printf("im here 1");
+		perror("'command not found'");
+		// free_all_commands(all_commands);
+		// free_all_commands(all_paths);
+		//return -1;
+	}
+	testprintcommands(all_commands);
+	testprintcommands(all_paths);
+	return 0;
 	while(all_commands[1][x])
 	{
 		if (access(all_commands[1][x], 0) == 0)
@@ -143,13 +175,15 @@ int main(int ac, char **av, char **envp)
 		}
 		x++;
 	}
-	// if (access(all_commands[1][x], 0) == -1)
-	// {
-	// 	perror("'command2 not found'");
-	// 	freeall(&all_commands);
-	// 	freeall(&all_paths);
-	// 	return 1;
-	// }
+	if (access(all_commands[1][x], 0) == -1)
+	{
+		//perror("'command not found'");
+		//write(2, "im here", 7);
+		write(2, "command not found\n", 19);
+		// free_all_commands(all_commands);
+		// free_all_commands(all_paths);
+		//return -1;
+	}
 	pipe(fd);
 	pid_t id = fork();
 	if (id == -1)
@@ -164,11 +198,9 @@ int main(int ac, char **av, char **envp)
 		close(fd[1]);
 		// if (execve(all_commands[0][j], all_paths[0], NULL) == -1)
 		// 	write(2, "'command not found'", 20);
-		execve(all_commands[0][j], all_paths[0], NULL);
-		perror("not executing");
-		freeall(&all_commands);
-		freeall(&all_paths);
-		return 1;		
+		int ret = execve(all_commands[0][j], all_paths[0], NULL);
+		if (ret == -1)
+			perror("not executing");
 	}
 	else if (id > 0 && flag2 == 1) //parent
 	{
@@ -183,14 +215,17 @@ int main(int ac, char **av, char **envp)
 		// 	// freeall(&all_paths);
 		// 	// return 1;
 		// }
-		execve(all_commands[1][x], all_paths[1], NULL);
-		perror("not executing");
-		freeall(&all_commands);
-		freeall(&all_paths);
-		return 1;
+		int ret = execve(all_commands[1][x], all_paths[1], NULL);
+		if (ret == -1)
+		{
+			perror("execve error");
+			free_all_commands(all_commands);
+			free_all_commands(all_paths);
+			return 1;
+		}
 	}
-	freeall(&all_commands);
-	freeall(&all_paths);
+	free_all_commands(all_commands);
+	free_all_commands(all_paths);
 	return 0;
 }
 
